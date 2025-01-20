@@ -573,13 +573,15 @@ $customers = empty($query_params)
         /* Form Grid Layout */
         .edit-form-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;  /* Changed from 1fr to 1fr 1fr */
             gap: 15px;
             margin-bottom: 20px;
+            padding: 10px;
         }
 
         .form-field {
             margin-bottom: 10px;
+            padding: 0 5px;
         }
 
         .form-field label {
