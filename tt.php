@@ -223,10 +223,118 @@ function smp_main_page() {
         </div>
 
         <?php
-        $customers = $wpdb->get_results("SELECT * FROM $table_customers ORDER BY id DESC");
+        // Build the query
+$query = "SELECT * FROM $table_customers WHERE 1=1";
+$query_params = array();
+
+// Search functionality
+if (!empty($_GET['customer_search'])) {
+    $search_term = '%' . $wpdb->esc_like($_GET['customer_search']) . '%';
+    $query .= " AND (name LIKE %s OR email LIKE %s OR phone LIKE %s)";
+    array_push($query_params, $search_term, $search_term, $search_term);
+}
+
+// Plan type filter
+if (!empty($_GET['plan_filter'])) {
+    $query .= " AND plan_type = %s";
+    $query_params[] = $_GET['plan_filter'];
+}
+
+// Status filter
+if (isset($_GET['status_filter']) && $_GET['status_filter'] !== '') {
+    $query .= " AND enabled = %d";
+    $query_params[] = intval($_GET['status_filter']);
+}
+
+// Time remaining filter
+if (!empty($_GET['time_filter'])) {
+    $now = current_time('mysql');
+    switch ($_GET['time_filter']) {
+        case 'expired':
+            $query .= " AND end_date < %s";
+            $query_params[] = $now;
+            break;
+        case '24h':
+            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 24 HOUR)";
+            array_push($query_params, $now, $now);
+            break;
+        case '7d':
+            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 7 DAY)";
+            array_push($query_params, $now, $now);
+            break;
+        case '30d':
+            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 30 DAY)";
+            array_push($query_params, $now, $now);
+            break;
+    }
+}
+
+// Add order by
+$query .= " ORDER BY id DESC";
+
+// Prepare and execute the query
+$customers = empty($query_params) 
+    ? $wpdb->get_results($query) 
+    : $wpdb->get_results($wpdb->prepare($query, $query_params));
         ?>
 
         <h2>Existing Customers</h2>
+        <!-- Search and Filter Section -->
+<div class="search-filter-container" style="margin: 20px 0; padding: 15px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+    <!-- Search Form -->
+    <form method="get" action="" class="search-form">
+        <input type="hidden" name="page" value="subscription-manager">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 15px; align-items: end;">
+            <!-- Search Input -->
+            <div>
+                <label for="customer_search" style="display: block; margin-bottom: 5px;"><strong>Search Customers</strong></label>
+                <input type="text" id="customer_search" name="customer_search" 
+                       value="<?php echo isset($_GET['customer_search']) ? esc_attr($_GET['customer_search']) : ''; ?>" 
+                       placeholder="Search by Name, Email, or Phone" 
+                       style="width: 100%;">
+            </div>
+            
+            <!-- Plan Type Filter -->
+            <div>
+                <label for="plan_filter" style="display: block; margin-bottom: 5px;"><strong>Plan Type</strong></label>
+                <select name="plan_filter" id="plan_filter" style="width: 100%;">
+                    <option value="">All Plans</option>
+                    <option value="1 month" <?php echo (isset($_GET['plan_filter']) && $_GET['plan_filter'] === '1 month') ? 'selected' : ''; ?>>1 Month</option>
+                    <option value="3 months" <?php echo (isset($_GET['plan_filter']) && $_GET['plan_filter'] === '3 months') ? 'selected' : ''; ?>>3 Months</option>
+                    <option value="6 months" <?php echo (isset($_GET['plan_filter']) && $_GET['plan_filter'] === '6 months') ? 'selected' : ''; ?>>6 Months</option>
+                    <option value="12 months" <?php echo (isset($_GET['plan_filter']) && $_GET['plan_filter'] === '12 months') ? 'selected' : ''; ?>>12 Months</option>
+                </select>
+            </div>
+
+            <!-- Time Remaining Filter -->
+            <div>
+                <label for="time_filter" style="display: block; margin-bottom: 5px;"><strong>Time Remaining</strong></label>
+                <select name="time_filter" id="time_filter" style="width: 100%;">
+                    <option value="">All Time</option>
+                    <option value="expired" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === 'expired') ? 'selected' : ''; ?>>Expired</option>
+                    <option value="24h" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '24h') ? 'selected' : ''; ?>>Less than 24 hours</option>
+                    <option value="7d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '7d') ? 'selected' : ''; ?>>Less than 7 days</option>
+                    <option value="30d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '30d') ? 'selected' : ''; ?>>Less than 30 days</option>
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+                <label for="status_filter" style="display: block; margin-bottom: 5px;"><strong>Status</strong></label>
+                <select name="status_filter" id="status_filter" style="width: 100%;">
+                    <option value="">All Status</option>
+                    <option value="1" <?php echo (isset($_GET['status_filter']) && $_GET['status_filter'] === '1') ? 'selected' : ''; ?>>Active</option>
+                    <option value="0" <?php echo (isset($_GET['status_filter']) && $_GET['status_filter'] === '0') ? 'selected' : ''; ?>>Disabled</option>
+                </select>
+            </div>
+
+            <!-- Search Button -->
+            <div>
+                <button type="submit" class="button button-primary" style="width: 100%;">Apply Filters</button>
+            </div>
+        </div>
+    </form>
+</div>
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
@@ -364,6 +472,28 @@ function smp_main_page() {
     </div>
 
     <style>
+    /* Search and Filter Styles */
+        .search-filter-container {
+            background: #fff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .search-form input[type="text"],
+        .search-form select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .search-form input[type="text"]:focus,
+        .search-form select:focus {
+            border-color: #2271b1;
+            box-shadow: 0 0 0 1px #2271b1;
+            outline: 2px solid transparent;
+        }
         /* Table Styles */
         .wp-list-table {
             margin-top: 20px;
