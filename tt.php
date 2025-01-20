@@ -1,3 +1,4 @@
+
 <?php
 /*
 Plugin Name: Subscription Manager Pro
@@ -258,8 +259,16 @@ if (!empty($_GET['time_filter'])) {
             $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 24 HOUR)";
             array_push($query_params, $now, $now);
             break;
-        case '7d':
-            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 7 DAY)";
+        case '5d':
+            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 5 DAY)";
+            array_push($query_params, $now, $now);
+            break;
+        case '10d':
+            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 10 DAY)";
+            array_push($query_params, $now, $now);
+            break;
+        case '20d':
+            $query .= " AND end_date > %s AND end_date <= DATE_ADD(%s, INTERVAL 20 DAY)";
             array_push($query_params, $now, $now);
             break;
         case '30d':
@@ -269,8 +278,16 @@ if (!empty($_GET['time_filter'])) {
     }
 }
 
-// Add order by
-$query .= " ORDER BY id DESC";
+// Add order by with sort direction and current date reference
+$now = '2025-01-20 21:57:18'; // Your current UTC time
+$sort_order = isset($_GET['sort_order']) && $_GET['sort_order'] === 'desc' ? 'DESC' : 'ASC';
+$query .= " ORDER BY 
+    CASE 
+        WHEN end_date < %s THEN 1 
+        ELSE 0 
+    END ASC, 
+    end_date " . $sort_order;
+$query_params[] = $now;
 
 // Prepare and execute the query
 $customers = empty($query_params) 
@@ -307,15 +324,27 @@ $customers = empty($query_params)
             </div>
 
             <!-- Time Remaining Filter -->
-            <div>
-                <label for="time_filter" style="display: block; margin-bottom: 5px;"><strong>Time Remaining</strong></label>
-                <select name="time_filter" id="time_filter" style="width: 100%;">
-                    <option value="">All Time</option>
-                    <option value="expired" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === 'expired') ? 'selected' : ''; ?>>Expired</option>
-                    <option value="24h" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '24h') ? 'selected' : ''; ?>>Less than 24 hours</option>
-                    <option value="7d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '7d') ? 'selected' : ''; ?>>Less than 7 days</option>
-                    <option value="30d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '30d') ? 'selected' : ''; ?>>Less than 30 days</option>
-                </select>
+<div>
+    <label for="time_filter" style="display: block; margin-bottom: 5px;"><strong>Time Remaining</strong></label>
+    <select name="time_filter" id="time_filter" style="width: 100%;">
+        <option value="">All Time</option>
+        <option value="expired" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === 'expired') ? 'selected' : ''; ?>>Expired</option>
+        <option value="24h" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '24h') ? 'selected' : ''; ?>>Less than 24 hours</option>
+        <option value="5d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '5d') ? 'selected' : ''; ?>>Less than 5 days</option>
+        <option value="10d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '10d') ? 'selected' : ''; ?>>Less than 10 days</option>
+        <option value="20d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '20d') ? 'selected' : ''; ?>>Less than 20 days</option>
+        <option value="30d" <?php echo (isset($_GET['time_filter']) && $_GET['time_filter'] === '30d') ? 'selected' : ''; ?>>Less than 30 days</option>
+    </select>
+</div>
+
+<!-- Sort Order -->
+<div>
+    <label for="sort_order" style="display: block; margin-bottom: 5px;"><strong>Sort By Expiration</strong></label>
+    <select name="sort_order" id="sort_order" style="width: 100%;">
+        <option value="asc" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'asc') ? 'selected' : ''; ?>>Earliest First</option>
+        <option value="desc" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'desc') ? 'selected' : ''; ?>>Latest First</option>
+    </select>
+</div>
             </div>
 
             <!-- Status Filter -->
