@@ -301,7 +301,7 @@ $customers = empty($query_params)
     <!-- Search Form -->
     <form method="get" action="" class="search-form">
         <input type="hidden" name="page" value="subscription-manager">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 15px; align-items: end;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap: 15px; align-items: end;">
             <!-- Search Input -->
             <div>
                 <label for="customer_search" style="display: block; margin-bottom: 5px;"><strong>Search Customers</strong></label>
@@ -345,8 +345,6 @@ $customers = empty($query_params)
         <option value="desc" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'desc') ? 'selected' : ''; ?>>Latest First</option>
     </select>
 </div>
-            </div>
-
             <!-- Status Filter -->
             <div>
                 <label for="status_filter" style="display: block; margin-bottom: 5px;"><strong>Status</strong></label>
