@@ -725,7 +725,7 @@ $customers = empty($query_params)
         }
 
         // Update countdown timers
-        function updateCountdowns() {
+  function updateCountdowns() {
             const countdownElements = document.querySelectorAll('.countdown');
             const now = new Date();
 
@@ -736,12 +736,16 @@ $customers = empty($query_params)
                 if (timeLeft <= 0) {
                     element.textContent = 'Expired';
                     element.classList.add('expired');
+                    element.style.backgroundColor = '#ffebee'; // Light red background for expired
                 } else {
                     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
                     element.textContent = `${days}d ${hours}h ${minutes}m`;
+                    // Set green background for all active subscriptions
+                    element.style.backgroundColor = '#e8f5e9'; // Green background
+                    element.style.color = '#2e7d32'; // Green text
                 }
             });
         }
