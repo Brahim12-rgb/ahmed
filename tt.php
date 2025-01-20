@@ -4,7 +4,7 @@ Plugin Name: Subscription Manager Pro
 Description: Manage subscriptions and automatic emails for customers
 Version: 1.0
 Author: Brahim12-rgb
-Date: 2025-01-19 21:42:27
+Date: 2025-01-20 15:46:29
 */
 
 if (!defined('ABSPATH')) {
@@ -22,6 +22,7 @@ function smp_create_tables() {
         email varchar(100) NOT NULL,
         phone varchar(20) DEFAULT NULL,
         devices int(2) NOT NULL DEFAULT 1,
+        plan_type varchar(20) DEFAULT '1 month',
         start_date datetime DEFAULT CURRENT_TIMESTAMP,
         end_date datetime NOT NULL,
         status varchar(20) DEFAULT 'active',
@@ -33,6 +34,12 @@ function smp_create_tables() {
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql_customers);
+
+    // Add plan_type column if it doesn't exist
+    $check_column = $wpdb->get_results("SHOW COLUMNS FROM {$table_customers} LIKE 'plan_type'");
+    if (empty($check_column)) {
+        $wpdb->query("ALTER TABLE {$table_customers} ADD COLUMN plan_type varchar(20) DEFAULT '1 month' AFTER devices");
+    }
 }
 register_activation_hook(__FILE__, 'smp_create_tables');
 
@@ -74,7 +81,7 @@ function smp_main_page() {
         $duration = intval($_POST['new_duration']);
         $enabled = isset($_POST['new_enabled']) ? 1 : 0;
 
-        $end_date = new DateTime('2025-01-19 21:42:27');
+        $end_date = new DateTime('2025-01-20 15:47:58');
         $interval_map = [
             '1' => 'P1M',
             '3' => 'P3M',
@@ -93,12 +100,13 @@ function smp_main_page() {
                     'email' => $email,
                     'phone' => $phone,
                     'devices' => $devices,
+                    'plan_type' => $duration . ' month' . ($duration > 1 ? 's' : ''),
                     'end_date' => $end_date->format('Y-m-d H:i:s'),
                     'enabled' => $enabled
                 ]
             );
 
-           echo '<div class="notice notice-success"><p>New customer added successfully!</p></div>';
+            echo '<div class="notice notice-success"><p>New customer added successfully!</p></div>';
         }
     }
 
@@ -152,6 +160,7 @@ function smp_main_page() {
                     'email' => $email,
                     'phone' => $phone,
                     'devices' => $devices,
+                    'plan_type' => $_POST['plan_type'],
                     'enabled' => $enabled
                 ],
                 ['id' => $customer_id]
@@ -225,6 +234,7 @@ function smp_main_page() {
                     <th style="width: 20%;">Email</th>
                     <th style="width: 12%;">Phone</th>
                     <th style="width: 80px;">Devices</th>
+                    <th style="width: 100px;">Plan Type</th>
                     <th style="width: 12%;">Start Date</th>
                     <th style="width: 12%;">End Date</th>
                     <th style="width: 10%;">Time Remaining</th>
@@ -239,6 +249,7 @@ function smp_main_page() {
                         <td><?php echo esc_html($customer->email); ?></td>
                         <td><?php echo esc_html($customer->phone); ?></td>
                         <td><?php echo esc_html($customer->devices); ?></td>
+                        <td><?php echo isset($customer->plan_type) ? esc_html($customer->plan_type) : '1 month'; ?></td>
                         <td><?php echo esc_html($customer->start_date); ?></td>
                         <td><?php echo esc_html($customer->end_date); ?></td>
                         <td class="countdown" data-enddate="<?php echo esc_attr($customer->end_date); ?>"></td>
@@ -322,6 +333,15 @@ function smp_main_page() {
                                             </select>
                                         </div>
                                         <div class="form-field">
+                                            <label>Plan Type:</label>
+                                            <select name="plan_type" class="regular-text">
+                                                <option value="1 month"<?php echo (isset($customer->plan_type) && $customer->plan_type == '1 month' ? ' selected' : ''); ?>>1 Month</option>
+                                                <option value="3 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '3 months' ? ' selected' : ''); ?>>3 Months</option>
+                                                <option value="6 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '6 months' ? ' selected' : ''); ?>>6 Months</option>
+                                                <option value="12 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '12 months' ? ' selected' : ''); ?>>12 Months</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
                                             <label>Status:</label>
                                             <select name="enabled" class="regular-text">
                                                 <option value="1"<?php echo ($customer->enabled ? ' selected' : ''); ?>>Active</option>
@@ -329,8 +349,8 @@ function smp_main_page() {
                                             </select>
                                         </div>
                                     </div>
-                                   <div class="modal-actions">
-                                        <button type="button" class="button button-secondary" 
+                                    <div class="modal-actions">
+                                       <button type="button" class="button button-secondary" 
                                                 onclick="toggleEditForm(<?php echo $customer->id; ?>)">Cancel</button>
                                         <input type="submit" name="edit_customer" class="button button-primary" value="Save Changes">
                                     </div>
@@ -346,45 +366,90 @@ function smp_main_page() {
     <style>
         /* Table Styles */
         .wp-list-table {
-            table-layout: fixed;
+            margin-top: 20px;
+        }
+
+        /* Modal Form Styles */
+        .modal-form {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        /* Form Grid Layout */
+        .edit-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-field {
+            margin-bottom: 10px;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-field input,
+        .form-field select {
             width: 100%;
         }
-        
-        .wp-list-table th,
-        .wp-list-table td {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding: 12px 8px;
-            vertical-align: middle;
+
+        /* Modal Actions */
+        .modal-actions {
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
         }
-        
+
+        .modal-actions button,
+        .modal-actions input[type="submit"] {
+            margin-left: 10px;
+        }
+
         /* Action Buttons Container */
         .action-buttons-container {
             display: flex;
             gap: 8px;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             padding: 5px;
-            border-radius: 4px;
         }
 
         /* Action Button Styles */
         .action-button {
-            min-width: 70px !important;
-            padding: 4px 12px !important;
+            min-width: 60px !important;
+            padding: 4px 8px !important;
             font-size: 12px !important;
-            height: 30px !important;
-            line-height: 1.8 !important;
+            height: 28px !important;
+            line-height: 1.5 !important;
             border-radius: 3px !important;
             text-align: center !important;
             cursor: pointer !important;
             transition: all 0.2s ease !important;
-            font-weight: 500 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-            border: 1px solid transparent !important;
-            margin: 0 !important;
         }
 
         /* Button Colors */
@@ -421,81 +486,10 @@ function smp_main_page() {
             border-color: #b02a37 !important;
         }
 
-        /* Modal Styles */
-        .modal-form {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 400px;
-            background: #ffffff;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .modal-form h3 {
-            margin: 0 0 20px 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e5e5e5;
-            font-size: 18px;
-            color: #23282d;
-        }
-
-        .edit-form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .form-field {
-            margin-bottom: 12px;
-        }
-
-        .form-field label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .form-field input,
-        .form-field select {
-            width: 100%;
-            padding: 6px 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e5e5;
-        }
-
-        /* Countdown Styles */
-        .countdown {
-            font-weight: 600;
-            padding: 8px !important;
-            text-align: center;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
+        /* Expired Status Style */
+        .countdown.expired {
+            color: red;
+            font-weight: bold;
         }
     </style>
 
@@ -505,20 +499,16 @@ function smp_main_page() {
             const overlay = document.getElementById('modal-overlay-' + customerId);
             
             if (form.style.display === 'none' || !form.style.display) {
-                // Create overlay if it doesn't exist
                 if (!overlay) {
                     const newOverlay = document.createElement('div');
                     newOverlay.id = 'modal-overlay-' + customerId;
                     newOverlay.className = 'modal-overlay';
                     document.body.appendChild(newOverlay);
-                    
-                    // Close modal when clicking overlay
                     newOverlay.onclick = function() {
                         form.style.display = 'none';
                         newOverlay.style.display = 'none';
                     };
                 }
-                
                 form.style.display = 'block';
                 document.getElementById('modal-overlay-' + customerId).style.display = 'block';
             } else {
@@ -534,20 +524,16 @@ function smp_main_page() {
             const overlay = document.getElementById('modal-overlay-edit-' + customerId);
             
             if (form.style.display === 'none' || !form.style.display) {
-                // Create overlay if it doesn't exist
                 if (!overlay) {
                     const newOverlay = document.createElement('div');
                     newOverlay.id = 'modal-overlay-edit-' + customerId;
                     newOverlay.className = 'modal-overlay';
                     document.body.appendChild(newOverlay);
-                    
-                    // Close modal when clicking overlay
                     newOverlay.onclick = function() {
                         form.style.display = 'none';
                         newOverlay.style.display = 'none';
                     };
                 }
-                
                 form.style.display = 'block';
                 document.getElementById('modal-overlay-edit-' + customerId).style.display = 'block';
             } else {
@@ -562,73 +548,33 @@ function smp_main_page() {
             return confirm('Are you sure you want to delete this customer? This action cannot be undone.');
         }
 
+        // Update countdown timers
         function updateCountdowns() {
-            const countdowns = document.querySelectorAll('.countdown');
+            const countdownElements = document.querySelectorAll('.countdown');
             const now = new Date();
 
-            countdowns.forEach(function(element) {
+            countdownElements.forEach(element => {
                 const endDate = new Date(element.dataset.enddate);
                 const timeLeft = endDate - now;
 
                 if (timeLeft <= 0) {
-                    element.innerHTML = '<span style="color: red;">Expired</span>';
-                    element.style.backgroundColor = '#ffe6e6';
+                    element.textContent = 'Expired';
+                    element.classList.add('expired');
                 } else {
                     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
-                    let displayText = '';
-                    if (days > 0) {
-                        displayText += days + ' day' + (days > 1 ? 's' : '') + ' ';
-                    }
-                    if (days < 7) {
-                        displayText += hours + ' hr' + (hours > 1 ? 's' : '') + ' ';
-                        if (days === 0) {
-                            displayText += minutes + ' min' + (minutes > 1 ? 's' : '');
-                        }
-                    }
-
-                    if (days <= 3) {
-                        element.style.backgroundColor = '#fff3cd';
-                        element.style.color = '#856404';
-                    } else if (days <= 7) {
-                        element.style.backgroundColor = '#fff3e6';
-                        element.style.color = '#664d03';
-                    } else {
-                        element.style.backgroundColor = '#e8f5e9';
-                        element.style.color = '#155724';
-                    }
-
-                    element.textContent = displayText.trim();
+                    element.textContent = `${days}d ${hours}h ${minutes}m`;
                 }
             });
         }
 
-        // Handle ESC key to close modals
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const modals = document.querySelectorAll('.modal-form');
-                const overlays = document.querySelectorAll('.modal-overlay');
-                
-                modals.forEach(function(modal) {
-                    modal.style.display = 'none';
-                });
-                
-                overlays.forEach(function(overlay) {
-                    overlay.style.display = 'none';
-                });
-            }
-        });
-
-        // Initialize countdowns
-        jQuery(document).ready(function($) {
-            updateCountdowns();
-            setInterval(updateCountdowns, 60000);
-        });
+        // Update countdowns immediately and every minute
+        updateCountdowns();
+        setInterval(updateCountdowns, 60000);
     </script>
     <?php
     $output = ob_get_clean();
     echo $output;
 }
-?>
