@@ -1,4 +1,5 @@
 
+
 <?php
 /*
 Plugin Name: Subscription Manager Pro
@@ -411,26 +412,26 @@ $customers = empty($query_params)
                             <?php echo $customer->enabled ? 'Active' : 'Disabled'; ?>
                         </td>
                         <td>
-                            <div class="action-buttons-container">
-                                <!-- Renew Button -->
-                                <button type="button" class="button action-button renew-button" 
-                                        onclick="toggleRenewForm(<?php echo $customer->id; ?>)">
-                                    Renew
-                                </button>
+    <div class="action-buttons-container" style="margin-left: -10px;">
+        <!-- Renew Button -->
+        <button type="button" class="button action-button renew-button" 
+                onclick="toggleRenewForm(<?php echo $customer->id; ?>)">
+            Renew
+        </button>
 
-                                <!-- Edit Button -->
-                                <button type="button" class="button action-button edit-button"
-                                        onclick="toggleEditForm(<?php echo $customer->id; ?>)">
-                                    Edit
-                                </button>
+        <!-- Edit Button -->
+        <button type="button" class="button action-button edit-button"
+                onclick="toggleEditForm(<?php echo $customer->id; ?>)">
+            Edit
+        </button>
 
-                                <!-- Delete Button -->
-                                <form method="post" style="display: inline-block; margin: 0;" onsubmit="return confirmDelete()">
-                                    <input type="hidden" name="customer_id" value="<?php echo $customer->id; ?>">
-                                    <?php wp_nonce_field('delete_customer_' . $customer->id, 'delete_customer_nonce'); ?>
-                                    <input type="submit" name="delete_customer" class="button action-button delete-button" value="Delete">
-                                </form>
-                            </div>
+        <!-- Delete Button -->
+        <form method="post" style="display: inline-block; margin: 0;" onsubmit="return confirmDelete()">
+            <input type="hidden" name="customer_id" value="<?php echo $customer->id; ?>">
+            <?php wp_nonce_field('delete_customer_' . $customer->id, 'delete_customer_nonce'); ?>
+            <input type="submit" name="delete_customer" class="button action-button delete-button" value="Delete">
+        </form>
+    </div>
 
                             <!-- Renew Form Modal -->
                             <div id="renew-form-<?php echo $customer->id; ?>" class="modal-form" style="display:none;">
@@ -608,26 +609,29 @@ $customers = empty($query_params)
             margin-left: 10px;
         }
 
-        /* Action Buttons Container */
         .action-buttons-container {
             display: flex;
-            gap: 8px;
+            gap: 10px;                              /* Increased space between buttons */
             align-items: center;
-            justify-content: flex-start;
             padding: 5px;
+            position: relative;
+            margin-left: -20px !important;         /* Keep the left positioning */
+            transform: translateX(-10px);          /* Keep the left shift */
         }
 
         /* Action Button Styles */
         .action-button {
-            min-width: 60px !important;
-            padding: 4px 8px !important;
-            font-size: 12px !important;
-            height: 28px !important;
-            line-height: 1.5 !important;
-            border-radius: 3px !important;
+            min-width: 40px !important;            /* Keep small width */
+            padding: 0px 5px !important;           /* Add horizontal padding */
+            font-size: 10px !important;            /* Keep small font */
+            height: 18px !important;               /* Keep small height */
+            line-height: 1 !important;
+            border-radius: 0px !important;         /* Make rectangular by removing border radius */
             text-align: center !important;
             cursor: pointer !important;
             transition: all 0.2s ease !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;     /* Ensure padding is included in width */
         }
 
         /* Button Colors */
