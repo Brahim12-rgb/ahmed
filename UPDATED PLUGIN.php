@@ -175,55 +175,103 @@ function smp_main_page() {
     <div class="wrap">
         <h1>Subscription Manager</h1>
         
-        <div class="card" style="max-width: 800px; margin-bottom: 20px; padding: 20px;">
-            <h2>Add New Customer</h2>
-            <form method="post">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <label for="new_name" style="display: block; margin-bottom: 5px;">Name</label>
-                        <input type="text" id="new_name" name="new_name" class="regular-text" style="width: 100%;">
-                    </div>
-                    <div>
-                        <label for="new_email" style="display: block; margin-bottom: 5px;">Email</label>
-                        <input type="email" id="new_email" name="new_email" required class="regular-text" style="width: 100%;">
-                    </div>
-                    <div>
-                        <label for="new_phone" style="display: block; margin-bottom: 5px;">Phone</label>
-                        <input type="text" id="new_phone" name="new_phone" class="regular-text" style="width: 100%;">
-                    </div>
-                    <div>
-                        <label for="new_devices" style="display: block; margin-bottom: 5px;">Devices</label>
-                        <select id="new_devices" name="new_devices" required style="width: 100%;">
-                            <?php
-                            for ($i = 1; $i <= 10; $i++) {
-                                echo "<option value=\"$i\">$i Device" . ($i > 1 ? 's' : '') . "</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="new_duration" style="display: block; margin-bottom: 5px;">Duration</label>
-                        <select id="new_duration" name="new_duration" required style="width: 100%;">
-                            <option value="1">1 Month</option>
-                            <option value="3">3 Months</option>
-                            <option value="6">6 Months</option>
-                            <option value="12">12 Months</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="new_enabled" style="display: block; margin-bottom: 5px;">Status</label>
-                        <select id="new_enabled" name="new_enabled" style="width: 100%;">
-                            <option value="1">Active</option>
-                            <option value="0">Disabled</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="margin-top: 20px; text-align: right;">
-                    <input type="submit" name="add_customer" class="button button-primary" value="Add Customer">
-                </div>
-            </form>
+        <div class="card" style="max-width: 1200px; margin-bottom: 20px; padding: 20px;">
+    <h2>Add New Customer</h2>
+    <form method="post">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 1100px;">
+            <div class="form-field">
+                <label for="new_name" style="display: block; margin-bottom: 8px;">Name</label>
+                <input type="text" id="new_name" name="new_name" class="regular-text">
+            </div>
+            <div class="form-field">
+                <label for="new_email" style="display: block; margin-bottom: 8px;">Email</label>
+                <input type="email" id="new_email" name="new_email" required class="regular-text">
+            </div>
+            <div class="form-field">
+                <label for="new_phone" style="display: block; margin-bottom: 8px;">Phone</label>
+                <input type="text" id="new_phone" name="new_phone" class="regular-text">
+            </div>
+            <div class="form-field">
+                <label for="new_devices" style="display: block; margin-bottom: 8px;">Devices</label>
+                <select id="new_devices" name="new_devices" required class="regular-text">
+                    <?php for ($i = 1; $i <= 10; $i++): ?>
+                        <option value="<?php echo $i; ?>"><?php echo $i; ?> Device<?php echo ($i > 1 ? 's' : ''); ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="new_duration" style="display: block; margin-bottom: 8px;">Duration</label>
+                <select id="new_duration" name="new_duration" required class="regular-text">
+                    <option value="1">1 Month</option>
+                    <option value="3">3 Months</option>
+                    <option value="6">6 Months</option>
+                    <option value="12">12 Months</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="new_enabled" style="display: block; margin-bottom: 8px;">Status</label>
+                <select id="new_enabled" name="new_enabled" class="regular-text">
+                    <option value="1">Active</option>
+                    <option value="0">Disabled</option>
+                </select>
+            </div>
         </div>
-
+        <div style="margin-top: 20px;">
+            <input type="submit" name="add_customer" class="button button-primary" value="Add Customer">
+        </div>
+    </form>
+</div><!-- Edit Form Modal -->
+<div id="edit-form-<?php echo $customer->id; ?>" class="modal-form" style="display:none;">
+    <form method="post">
+        <h3>Edit Customer</h3>
+        <?php wp_nonce_field('edit_customer_' . $customer->id, 'edit_customer_nonce'); ?>
+        <input type="hidden" name="customer_id" value="<?php echo $customer->id; ?>">
+        <div class="edit-form-grid">
+            <div class="form-field">
+                <label>Name:</label>
+                <input type="text" name="name" value="<?php echo esc_attr($customer->name); ?>" class="regular-text">
+            </div>
+            <div class="form-field">
+                <label>Email:</label>
+                <input type="email" name="email" value="<?php echo esc_attr($customer->email); ?>" required class="regular-text">
+            </div>
+            <div class="form-field">
+                <label>Phone:</label>
+                <input type="text" name="phone" value="<?php echo esc_attr($customer->phone); ?>" class="regular-text">
+            </div>
+            <div class="form-field">
+                <label>Devices:</label>
+                <select name="devices" class="regular-text">
+                    <?php for ($i = 1; $i <= 10; $i++): ?>
+                        <option value="<?php echo $i; ?>"<?php echo ($customer->devices == $i ? ' selected' : ''); ?>>
+                            <?php echo $i; ?> Device<?php echo ($i > 1 ? 's' : ''); ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Plan Type:</label>
+                <select name="plan_type" class="regular-text">
+                    <option value="1 month"<?php echo (isset($customer->plan_type) && $customer->plan_type == '1 month' ? ' selected' : ''); ?>>1 Month</option>
+                    <option value="3 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '3 months' ? ' selected' : ''); ?>>3 Months</option>
+                    <option value="6 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '6 months' ? ' selected' : ''); ?>>6 Months</option>
+                    <option value="12 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '12 months' ? ' selected' : ''); ?>>12 Months</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Status:</label>
+                <select name="enabled" class="regular-text">
+                    <option value="1"<?php echo ($customer->enabled ? ' selected' : ''); ?>>Active</option>
+                    <option value="0"<?php echo (!$customer->enabled ? ' selected' : ''); ?>>Disabled</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="button button-secondary" onclick="toggleEditForm(<?php echo $customer->id; ?>)">Cancel</button>
+            <input type="submit" name="edit_customer" class="button button-primary" value="Save Changes">
+        </div>
+    </form>
+</div>
         <?php
         // Build the query
 $query = "SELECT * FROM $table_customers WHERE 1=1";
@@ -459,66 +507,106 @@ $customers = empty($query_params)
                             </div>
 
                             <!-- Edit Form Modal -->
-                            <div id="edit-form-<?php echo $customer->id; ?>" class="modal-form" style="display:none;">
-                                <form method="post">
-                                    <h3>Edit Customer</h3>
-                                    <?php wp_nonce_field('edit_customer_' . $customer->id, 'edit_customer_nonce'); ?>
-                                    <input type="hidden" name="customer_id" value="<?php echo $customer->id; ?>">
-                                    <div class="edit-form-grid">
-                                        <div class="form-field">
-                                            <label>Name:</label>
-                                            <input type="text" name="name" value="<?php echo esc_attr($customer->name); ?>" class="regular-text">
-                                        </div>
-                                        <div class="form-field">
-                                            <label>Email:</label>
-                                            <input type="email" name="email" value="<?php echo esc_attr($customer->email); ?>" required class="regular-text">
-                                        </div>
-                                        <div class="form-field">
-                                            <label>Phone:</label>
-                                            <input type="text" name="phone" value="<?php echo esc_attr($customer->phone); ?>" class="regular-text">
-                                        </div>
-                                        <div class="form-field">
-                                            <label>Devices:</label>
-                                            <select name="devices" class="regular-text">
-                                                <?php for ($i = 1; $i <= 10; $i++): ?>
-                                                    <option value="<?php echo $i; ?>"<?php echo ($customer->devices == $i ? ' selected' : ''); ?>>
-                                                        <?php echo $i; ?> Device<?php echo ($i > 1 ? 's' : ''); ?>
-                                                    </option>
-                                                <?php endfor; ?>
-                                            </select>
-                                        </div>
-                                        <div class="form-field">
-                                            <label>Plan Type:</label>
-                                            <select name="plan_type" class="regular-text">
-                                                <option value="1 month"<?php echo (isset($customer->plan_type) && $customer->plan_type == '1 month' ? ' selected' : ''); ?>>1 Month</option>
-                                                <option value="3 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '3 months' ? ' selected' : ''); ?>>3 Months</option>
-                                                <option value="6 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '6 months' ? ' selected' : ''); ?>>6 Months</option>
-                                                <option value="12 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '12 months' ? ' selected' : ''); ?>>12 Months</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-field">
-                                            <label>Status:</label>
-                                            <select name="enabled" class="regular-text">
-                                                <option value="1"<?php echo ($customer->enabled ? ' selected' : ''); ?>>Active</option>
-                                                <option value="0"<?php echo (!$customer->enabled ? ' selected' : ''); ?>>Disabled</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="modal-actions">
-                                       <button type="button" class="button button-secondary" 
-                                                onclick="toggleEditForm(<?php echo $customer->id; ?>)">Cancel</button>
-                                        <input type="submit" name="edit_customer" class="button button-primary" value="Save Changes">
-                                    </div>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+<div id="edit-form-<?php echo $customer->id; ?>" class="modal-form" style="display:none;">
+    <form method="post">
+        <h3>Edit Customer</h3>
+        <?php wp_nonce_field('edit_customer_' . $customer->id, 'edit_customer_nonce'); ?>
+        <input type="hidden" name="customer_id" value="<?php echo $customer->id; ?>">
+        <div class="edit-form-grid">
+            <div class="form-field">
+                <label>Name:</label>
+                <input type="text" name="name" value="<?php echo esc_attr($customer->name); ?>" class="regular-text">
+            </div>
+            <div class="form-field">
+                <label>Email:</label>
+                <input type="email" name="email" value="<?php echo esc_attr($customer->email); ?>" required class="regular-text">
+            </div>
+            <div class="form-field">
+                <label>Phone:</label>
+                <input type="text" name="phone" value="<?php echo esc_attr($customer->phone); ?>" class="regular-text">
+            </div>
+            <div class="form-field">
+                <label>Devices:</label>
+                <select name="devices" class="regular-text">
+                    <?php for ($i = 1; $i <= 10; $i++): ?>
+                        <option value="<?php echo $i; ?>"<?php echo ($customer->devices == $i ? ' selected' : ''); ?>>
+                            <?php echo $i; ?> Device<?php echo ($i > 1 ? 's' : ''); ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Plan Type:</label>
+                <select name="plan_type" class="regular-text">
+                    <option value="1 month"<?php echo (isset($customer->plan_type) && $customer->plan_type == '1 month' ? ' selected' : ''); ?>>1 Month</option>
+                    <option value="3 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '3 months' ? ' selected' : ''); ?>>3 Months</option>
+                    <option value="6 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '6 months' ? ' selected' : ''); ?>>6 Months</option>
+                    <option value="12 months"<?php echo (isset($customer->plan_type) && $customer->plan_type == '12 months' ? ' selected' : ''); ?>>12 Months</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Status:</label>
+                <select name="enabled" class="regular-text">
+                    <option value="1"<?php echo ($customer->enabled ? ' selected' : ''); ?>>Active</option>
+                    <option value="0"<?php echo (!$customer->enabled ? ' selected' : ''); ?>>Disabled</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="button button-secondary" onclick="toggleEditForm(<?php echo $customer->id; ?>)">Cancel</button>
+            <input type="submit" name="edit_customer" class="button button-primary" value="Save Changes">
+        </div>
+    </form>
+</div>
 
     <style>
+    /* Input Field Dimensions */
+.regular-text,
+input[type="text"],
+input[type="email"],
+select {
+    width: 350px !important; /* Increased width */
+    height: 35px !important; /* Comfortable height */
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+}
+
+/* Add New Customer Form specific styles */
+.card input[type="text"],
+.card input[type="email"],
+.card select {
+    width: 100% !important; /* Full width within their container */
+    max-width: 350px !important;
+}
+
+/* Edit Form Modal specific styles */
+.modal-form input[type="text"],
+.modal-form input[type="email"],
+.modal-form select {
+    width: 100% !important;
+    max-width: 350px !important;
+}
+
+/* Make the modal wider to accommodate larger input fields */
+.modal-form {
+    max-width: 800px !important; /* Increased from 500px */
+    width: 90% !important;
+    padding: 25px !important;
+}
+
+/* Adjust the edit form grid layout */
+.edit-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Form field container adjustments */
+.form-field {
+    margin-bottom: 15px;
+    padding: 0 5px;
+}
     /* Search and Filter Styles */
         .search-filter-container {
             background: #fff;
