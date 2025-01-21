@@ -4,8 +4,8 @@
 /*
 Plugin Name: Subscription Manager Pro
 Description: Manage subscriptions and automatic emails for customers
-Version: 1.0
-Author: Brahim12-rgb
+Version: 10.0
+Author: iptvgateway
 Date: 2025-01-20 15:46:29
 */
 
@@ -360,7 +360,7 @@ $customers = empty($query_params)
 <div>
     <label for="sort_order" style="display: block; margin-bottom: 5px;"><strong>Sort By</strong></label>
     <select name="sort_order" id="sort_order" style="width: 100%;">
-        <option value="">Default (Order Added)</option>
+        <option value=""> Default </option>
         <option value="exp_asc" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'exp_asc') ? 'selected' : ''; ?>>EX (Earliest First)</option>
         <option value="exp_desc" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'exp_desc') ? 'selected' : ''; ?>>EX (Latest First)</option>
     </select>
@@ -610,63 +610,69 @@ $customers = empty($query_params)
         }
 
         .action-buttons-container {
-            display: flex;
-            gap: 10px;                              /* Increased space between buttons */
-            align-items: center;
-            padding: 5px;
-            position: relative;
-            margin-left: -20px !important;         /* Keep the left positioning */
-            transform: translateX(-10px);          /* Keep the left shift */
-        }
+    display: flex;
+    gap: 5px !important;                   /* Remove gap between buttons */
+    align-items: center;
+    padding: 0 !important;                 /* Remove padding */
+    position: relative;
+    margin-left: -20px !important;         /* Move buttons to the left */
+    transform: translateX(-10px);          /* Additional left shift */
+    white-space: nowrap !important;        /* Ensure buttons stay in one line */
+}
 
-        /* Action Button Styles */
-        .action-button {
-            min-width: 40px !important;            /* Keep small width */
-            padding: 0px 5px !important;           /* Add horizontal padding */
-            font-size: 10px !important;            /* Keep small font */
-            height: 18px !important;               /* Keep small height */
-            line-height: 1 !important;
-            border-radius: 0px !important;         /* Make rectangular by removing border radius */
-            text-align: center !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-            margin: 0 !important;
-            box-sizing: border-box !important;     /* Ensure padding is included in width */
-        }
+/* Action Button Styles */
+.action-button {
+    min-width: 40px !important;            /* Keep small width */
+    padding: 0px 5px !important;           /* Add horizontal padding */
+    font-size: 10px !important;            /* Keep small font */
+    height: 18px !important;               /* Keep small height */
+    line-height: 1 !important;
+    border-radius: 5px !important;         /* Make rectangular by removing border radius */
+    text-align: center !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;                  /* Remove margins */
+    box-sizing: border-box !important;     /* Ensure padding is included in width */
+    display: inline-block !important;      /* Make buttons inline */
+    border: none !important;               /* Remove borders between buttons */
+}
 
-        /* Button Colors */
-        .renew-button {
-            background-color: #2271b1 !important;
-            color: white !important;
-            border-color: #2271b1 !important;
-        }
+/* Form inline display */
+form[method="post"] {
+    display: inline-block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
-        .renew-button:hover {
-            background-color: #135e96 !important;
-            border-color: #135e96 !important;
-        }
+/* Button Colors */
+.renew-button {
+    background-color: #2271b1 !important;
+    color: white !important;
+}
 
-        .edit-button {
-            background-color: #6c757d !important;
-            color: white !important;
-            border-color: #6c757d !important;
-        }
+.edit-button {
+    background-color: #6c757d !important;
+    color: white !important;
+}
 
-        .edit-button:hover {
-            background-color: #5c636a !important;
-            border-color: #565e64 !important;
-        }
+.delete-button {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
 
-        .delete-button {
-            background-color: #dc3545 !important;
-            color: white !important;
-            border-color: #dc3545 !important;
-        }
+/* Hover effects */
+.renew-button:hover {
+    background-color: #135e96 !important;
+}
 
-        .delete-button:hover {
-            background-color: #bb2d3b !important;
-            border-color: #b02a37 !important;
-        }
+.edit-button:hover {
+    background-color: #5c636a !important;
+}
+
+.delete-button:hover {
+    background-color: #bb2d3b !important;
+}
 
         /* Expired Status Style */
         .countdown.expired {
