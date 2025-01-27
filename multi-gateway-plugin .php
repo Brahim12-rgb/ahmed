@@ -77,32 +77,45 @@ function multi_payment_gateway_init() {
                     'description' => __('Enter the logo size (e.g., 50px)', 'woocommerce'),
                     'default'     => '50px',
                 ),
+                'payment_status' => array(
+    'title'       => __('Payment Status', 'woocommerce'),
+    'type'        => 'select',
+    'description' => __('Select the payment status for this gateway', 'woocommerce'),
+    'default'     => 'processing',
+    'options'     => array(
+        'processing' => __('Processing', 'woocommerce'),
+        'on_hold'    => __('On Hold', 'woocommerce'),
+        'completed'  => __('Completed', 'woocommerce'),
+        'cancelled'  => __('Cancelled', 'woocommerce'),
+    ),
+),
             );
         }
 
         public function process_payment($order_id) {
-            $product_links = $this->get_option('product_links');
-            $order_items = $this->get_order_items($order_id);
+    $product_links = $this->get_option('product_links');
+    $order_items = $this->get_order_items($order_id);
 
-            foreach ($order_items as $item) {
-                $product_id = $item->get_product_id();
-                $variation_id = $item->get_variation_id();
-                
-                $id_to_check = $variation_id ?: $product_id;
-                $product_links_array = $this->parse_product_links($product_links);
+    foreach ($order_items as $item) {
+        $product_id = $item->get_product_id();
+        $variation_id = $item->get_variation_id();
+        
+        $id_to_check = $variation_id ?: $product_id;
+        $product_links_array = $this->parse_product_links($product_links);
 
-                if (isset($product_links_array[$id_to_check])) {
-                    $this->update_order_status($order_id);
-                    return array(
-                        'result'   => 'success',
-                        'redirect' => esc_url($product_links_array[$id_to_check]),
-                    );
-                }
-            }
-
-            wc_add_notice(__('This payment gateway is not available for the selected products.', 'woocommerce'), 'error');
-            return;
+        if (isset($product_links_array[$id_to_check])) {
+            $payment_status = $this->get_option('payment_status'); // Retrieve the selected payment status
+            $this->update_order_status($order_id, $payment_status); // Use the selected payment status
+            return array(
+                'result'   => 'success',
+                'redirect' => esc_url($product_links_array[$id_to_check]),
+            );
         }
+    }
+
+    wc_add_notice(__('This payment gateway is not available for the selected products.', 'woocommerce'), 'error');
+    return;
+}
 
         private function parse_product_links($product_links) {
             $parsed_links = array();
@@ -126,10 +139,10 @@ function multi_payment_gateway_init() {
             return wc_get_order($order_id)->get_items();
         }
 
-        private function update_order_status($order_id) {
-            $order = wc_get_order($order_id);
-            $order->update_status('on-hold', __('Awaiting payment confirmation.', 'woocommerce'));
-        }
+        private function update_order_status($order_id, $status) {
+    $order = wc_get_order($order_id);
+    $order->update_status('wc-' . $status, __('Order status updated to ' . $status . '.', 'woocommerce'));
+}
 
         public function display_gateway_icon($icon, $gateway_id) {
             if ($gateway_id === $this->id && $this->icon) {
