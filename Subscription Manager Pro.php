@@ -81,30 +81,30 @@ function smp_main_page() {
         $duration = intval($_POST['new_duration']);
         $enabled = isset($_POST['new_enabled']) ? 1 : 0;
 
-        $end_date = new DateTime('2025-01-20 15:47:58');
-        $interval_map = [
-            '1' => 'P1M',
-            '3' => 'P3M',
-            '6' => 'P6M',
-            '12' => 'P1Y'
-        ];
+        $end_date = new DateTime();  // Use current time
+$interval_map = [
+    '1' => 'P1M',
+    '3' => 'P3M',
+    '6' => 'P6M',
+    '12' => 'P1Y'
+];
 
-        if (array_key_exists($duration, $interval_map)) {
-            $interval = new DateInterval($interval_map[$duration]);
-            $end_date->add($interval);
+if (array_key_exists($duration, $interval_map)) {
+    $interval = new DateInterval($interval_map[$duration]);
+    $end_date->add($interval);
 
-            $wpdb->insert(
-                $table_customers,
-                [
-                    'name' => $name,
-                    'email' => $email,
-                    'phone' => $phone,
-                    'devices' => $devices,
-                    'plan_type' => $duration . ' month' . ($duration > 1 ? 's' : ''),
-                    'end_date' => $end_date->format('Y-m-d H:i:s'),
-                    'enabled' => $enabled
-                ]
-            );
+    $wpdb->insert(
+        $table_customers,
+        [
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone,
+            'devices' => $devices,
+            'plan_type' => $duration . ' month' . ($duration > 1 ? 's' : ''),
+            'end_date' => $end_date->format('Y-m-d H:i:s'),
+            'enabled' => $enabled
+        ]
+    );
 
             echo '<div class="notice notice-success"><p>New customer added successfully!</p></div>';
         }
